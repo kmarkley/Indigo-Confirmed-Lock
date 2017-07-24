@@ -1,0 +1,196 @@
+<?xml version='1.0'?>
+<Devices>
+	<Device type='relay' id='confirmedLock'>
+	    <Name>Confirmed Lock</Name>
+	    <ConfigUI>
+			<Field id='IsLockSubType' type='checkbox' defaultValue='true' hidden='true' />
+			<Field id='lockSection' type='label' fontSize='big'>
+				<Label>LOCK</Label>
+			</Field>
+            <Field id='lockDevice' type='menu'>
+                <Label>Select Lock Device:</Label>
+                <List class='self' method='getLockDeviceList'/>
+            </Field>
+			<Field id='attemptsCount' type='menu' defaultValue='3'>
+				<Label>Number of attempts:</Label>
+				<List>
+					<Option value='1'>1</Option>
+					<Option value='2'>2</Option>
+					<Option value='3'>3</Option>
+					<Option value='4'>4</Option>
+					<Option value='5'>5</Option>
+				</List>
+			</Field>
+			<Field id='attemptsDelay' type='menu' defaultValue='10'>
+				<Label>Delay between attempts:</Label>
+				<List>
+					<Option value='2'>2 seconds</Option>
+					<Option value='5'>5 seconds</Option>
+					<Option value='10'>10 seconds</Option>
+					<Option value='15'>15 seconds</Option>
+					<Option value='30'>30 seconds</Option>
+					<Option value='60'>1 minute</Option>
+				</List>
+			</Field>
+			<Field id='separator1' type='separator' />
+			<Field id='confirmationSection' type='label' fontSize='big'>
+				<Label>CONFIRMATION</Label>
+			</Field>
+			<Field id='doorSensorBool' type='checkbox'>
+				<Label>Door sensor?</Label>
+				<Description>Confirmation that door is closed</Description>
+			</Field>
+			<Field id='doorSensorDevice' type='menu' visibleBindingId='doorSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Door sensor device:</Label>
+				<List class='indigo.devices' />
+			</Field>
+			<Field id='loadStates1' type='button' visibleBindingId='doorSensorBool'  visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+                <Label></Label>
+                <Title>Load States</Title>
+                <CallbackMethod>loadStates</CallbackMethod>
+            </Field>
+			<Field id='doorSensorState' type='menu' visibleBindingId='doorSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>>
+                <Label>State:</Label>
+                <List class='self' filter='doorSensorDevice' method='getStateList' dynamicReload='true'/>
+            </Field>
+			<Field id='doorSensorLogic' type='menu' defaultValue='false' visibleBindingId='doorSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Value when closed:</Label>
+				<List>
+					<Option value='false'>False,Off,Closed,Down,No,Inactive,Unlocked,0</Option>
+					<Option value='true'>True,On,Open,Up,Yes,Active,Locked,1</Option>
+				</List>
+			</Field>
+			<Field id='spacer1' type='label'>
+				<Label> </Label>
+			</Field>
+			<Field id='deadboltSensorBool' type='checkbox'>
+				<Label>Deadbolt sensor?</Label>
+				<Description>Confirmation that deadbolt is engaged</Description>
+			</Field>
+			<Field id='deadboltSensorDevice' type='menu' visibleBindingId='deadboltSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Deadbolt sensor device:</Label>
+				<List class='indigo.devices' />
+			</Field>
+			<Field id='loadStates2' type='button' visibleBindingId='deadboltSensorBool'  visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+                <Label></Label>
+                <Title>Load States</Title>
+                <CallbackMethod>loadStates</CallbackMethod>
+            </Field>
+			<Field id='deadboltSensorState' type='menu' visibleBindingId='deadboltSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>>
+                <Label>State:</Label>
+                <List class='self' filter='deadboltSensorDevice' method='getStateList' dynamicReload='true'/>
+            </Field>
+			<Field id='deadboltSensorLogic' type='menu' defaultValue='false' visibleBindingId='deadboltSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Value when engaged:</Label>
+				<List>
+					<Option value='false'>False,Off,Closed,Down,No,Inactive,Unlocked,0</Option>
+					<Option value='true'>True,On,Open,Up,Yes,Active,Locked,1</Option>
+				</List>
+			</Field>
+			<Field id='deadboltSensorDelay' type='menu' visibleBindingId='deadboltSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true' defaultValue='1'>
+				<Label>Deadbolt sensor delay:</Label>
+				<List>
+					<Option value='1'>1 second</Option>
+					<Option value='2'>2 seconds</Option>
+					<Option value='3'>3 seconds</Option>
+					<Option value='4'>4 seconds</Option>
+					<Option value='5'>5 seconds</Option>
+				</List>
+			</Field>
+			<Field id='deadboltDelayHelp' type='label' fontColor='darkgray' fontSize='small' alignWithControl='true' visibleBindingId='deadboltSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Wait before checking sensor value</Label>
+			</Field>
+			<Field id='separator2' type='separator' />
+			<Field id='failureSection' type='label' fontSize='big'>
+				<Label>FAILURE</Label>
+			</Field>
+			<Field id='actionBool' type='checkbox'>
+				<Label>Failure action?</Label>
+				<Description>Execute an Action Group on failure</Description>
+			</Field>
+			<Field id='actionGroup' type='menu' visibleBindingId='actionBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Select action group:</Label>
+				<List class='indigo.actionGroups' />
+			</Field>
+			<Field id='pesterHelp0' type='label' visibleBindingId='actionBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Optionally repeat action group with a pester.</Label>
+			</Field>
+			<Field id='pesterHelp1' type='label' visibleBindingId='actionBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>    (will be cancelled upon any successful lock or unlock)</Label>
+			</Field>
+			<Field id='pesterCycles' type='textfield' visibleBindingId='actionBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Pester cycles:</Label>
+			</Field>
+			<Field id='pesterHelp2' type='label' fontColor='darkgray' fontSize='small' alignWithControl='true' visibleBindingId='actionBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Zero or blank to prevent pester.</Label>
+			</Field>
+			<Field id='pesterDelay' type='textfield' visibleBindingId='actionBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Pester time (sec):</Label>
+			</Field>
+			<Field id='pesterFinal' type='menu' visibleBindingId='actionBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Final action group:</Label>
+				<List class='indigo.actionGroups' />
+			</Field>
+			<Field id='spacer2' type='label'>
+				<Label> </Label>
+			</Field>
+			<Field id='messageBool' type='checkbox'>
+				<Label>Message to variable?</Label>
+				<Description>Save message to variable on failure</Description>
+			</Field>
+			<Field id='messageVariable' type='menu' visibleBindingId='messageBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Variable:</Label>
+				<List class='indigo.variables' />
+			</Field>
+			<Field id='messageText' type='textfield' visibleBindingId='messageBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Message:</Label>
+			</Field>
+			<Field id='messageHelp' type='label' fontColor='darkgray' fontSize='small' alignWithControl='true' visibleBindingId='actionBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Standard text substitutions apply.</Label>
+			</Field>
+        </ConfigUI>
+		<States>
+			<State id='state'>
+                <ValueType>
+                    <List>
+                        <Option value='open'>Open</Option>
+                        <Option value='unlocked'>Unlocked</Option>
+                        <Option value='unconfirmed'>Unconfirmed</Option>
+						<Option value='confirmed'>Confirmed</Option>
+                    </List>
+                </ValueType>
+                <TriggerLabel>Any State Change</TriggerLabel>
+                <TriggerLabelPrefix>State is</TriggerLabelPrefix>
+                <ControlPageLabel>State</ControlPageLabel>
+                <ControlPageLabelPrefix>State is</ControlPageLabelPrefix>
+            </State>
+			<State id='door_closed'>
+				<ValueType>Boolean</ValueType>
+                <TriggerLabel>Door is Closed</TriggerLabel>
+                <TriggerLabelPrefix>Door is Closed</TriggerLabelPrefix>
+                <ControlPageLabel>Door is Closed</ControlPageLabel>
+                <ControlPageLabelPrefix>Door is Closed</ControlPageLabelPrefix>
+            </State>
+			<State id='lock_locked'>
+				<ValueType>Boolean</ValueType>
+                <TriggerLabel>Lock is Locked</TriggerLabel>
+                <TriggerLabelPrefix>Lock is Locked</TriggerLabelPrefix>
+                <ControlPageLabel>Lock is Locked</ControlPageLabel>
+                <ControlPageLabelPrefix>Lock is Locked</ControlPageLabelPrefix>
+            </State>
+			<State id='deadbolt_engaged'>
+				<ValueType>Boolean</ValueType>
+                <TriggerLabel>Deadbolt is Engaged</TriggerLabel>
+                <TriggerLabelPrefix>Deadbolt is Engaged</TriggerLabelPrefix>
+                <ControlPageLabel>Deadbolt is Engaged</ControlPageLabel>
+                <ControlPageLabelPrefix>Deadbolt is Engaged</ControlPageLabelPrefix>
+            </State>
+		</States>
+    </Device>
+	<Device type='relay' id='dummyLock'>
+	    <Name>Dummy Lock</Name>
+	    <ConfigUI>
+			<Field id='IsLockSubType' type='checkbox' defaultValue='true' hidden='true' />
+		</ConfigUI>
+	</Device>
+</Devices>
