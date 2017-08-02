@@ -19,12 +19,16 @@
 					<Option value='3'>3</Option>
 					<Option value='4'>4</Option>
 					<Option value='5'>5</Option>
+					<Option value='6'>6</Option>
+					<Option value='7'>7</Option>
+					<Option value='8'>8</Option>
+					<Option value='9'>9</Option>
+					<Option value='10'>10</Option>
 				</List>
 			</Field>
 			<Field id='attemptsDelay' type='menu' defaultValue='10'>
 				<Label>Delay between attempts:</Label>
 				<List>
-					<Option value='2'>2 seconds</Option>
 					<Option value='5'>5 seconds</Option>
 					<Option value='10'>10 seconds</Option>
 					<Option value='15'>15 seconds</Option>
@@ -43,12 +47,8 @@
 			<Field id='doorSensorDevice' type='menu' visibleBindingId='doorSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
 				<Label>Door sensor device:</Label>
 				<List class='indigo.devices' />
+				<CallbackMethod>loadStates</CallbackMethod>
 			</Field>
-			<Field id='loadStates1' type='button' visibleBindingId='doorSensorBool'  visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
-                <Label></Label>
-                <Title>Load States</Title>
-                <CallbackMethod>loadStates</CallbackMethod>
-            </Field>
 			<Field id='doorSensorState' type='menu' visibleBindingId='doorSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>>
                 <Label>State:</Label>
                 <List class='self' filter='doorSensorDevice' method='getStateList' dynamicReload='true'/>
@@ -70,12 +70,8 @@
 			<Field id='deadboltSensorDevice' type='menu' visibleBindingId='deadboltSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
 				<Label>Deadbolt sensor device:</Label>
 				<List class='indigo.devices' />
+				<CallbackMethod>loadStates</CallbackMethod>
 			</Field>
-			<Field id='loadStates2' type='button' visibleBindingId='deadboltSensorBool'  visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
-                <Label></Label>
-                <Title>Load States</Title>
-                <CallbackMethod>loadStates</CallbackMethod>
-            </Field>
 			<Field id='deadboltSensorState' type='menu' visibleBindingId='deadboltSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>>
                 <Label>State:</Label>
                 <List class='self' filter='deadboltSensorDevice' method='getStateList' dynamicReload='true'/>
@@ -87,7 +83,7 @@
 					<Option value='true'>True,On,Open,Up,Yes,Active,Locked,1</Option>
 				</List>
 			</Field>
-			<Field id='deadboltSensorDelay' type='menu' visibleBindingId='deadboltSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true' defaultValue='1'>
+			<Field id='deadboltSensorDelay' type='menu' visibleBindingId='deadboltSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true' defaultValue='5'>
 				<Label>Deadbolt sensor delay:</Label>
 				<List>
 					<Option value='1'>1 second</Option>
@@ -95,6 +91,11 @@
 					<Option value='3'>3 seconds</Option>
 					<Option value='4'>4 seconds</Option>
 					<Option value='5'>5 seconds</Option>
+					<Option value='6'>6 seconds</Option>
+					<Option value='7'>7 seconds</Option>
+					<Option value='8'>8 seconds</Option>
+					<Option value='9'>9 seconds</Option>
+					<Option value='10'>10 seconds</Option>
 				</List>
 			</Field>
 			<Field id='deadboltDelayHelp' type='label' fontColor='darkgray' fontSize='small' alignWithControl='true' visibleBindingId='deadboltSensorBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
@@ -164,26 +165,33 @@
                 <ControlPageLabel>State</ControlPageLabel>
                 <ControlPageLabelPrefix>State is</ControlPageLabelPrefix>
             </State>
-			<State id='door_closed'>
+			<State id='door_confirmed'>
 				<ValueType>Boolean</ValueType>
-                <TriggerLabel>Door is Closed</TriggerLabel>
-                <TriggerLabelPrefix>Door is Closed</TriggerLabelPrefix>
-                <ControlPageLabel>Door is Closed</ControlPageLabel>
-                <ControlPageLabelPrefix>Door is Closed</ControlPageLabelPrefix>
+                <TriggerLabel>Door Confirmed</TriggerLabel>
+                <TriggerLabelPrefix>Door Confirmed</TriggerLabelPrefix>
+                <ControlPageLabel>Door Confirmed</ControlPageLabel>
+                <ControlPageLabelPrefix>Door Confirmed</ControlPageLabelPrefix>
             </State>
-			<State id='lock_locked'>
+			<State id='lock_confirmed'>
 				<ValueType>Boolean</ValueType>
-                <TriggerLabel>Lock is Locked</TriggerLabel>
-                <TriggerLabelPrefix>Lock is Locked</TriggerLabelPrefix>
-                <ControlPageLabel>Lock is Locked</ControlPageLabel>
-                <ControlPageLabelPrefix>Lock is Locked</ControlPageLabelPrefix>
+                <TriggerLabel>Lock Confirmed</TriggerLabel>
+                <TriggerLabelPrefix>Lock Confirmed</TriggerLabelPrefix>
+                <ControlPageLabel>Lock Confirmed</ControlPageLabel>
+                <ControlPageLabelPrefix>Lock Confirmed</ControlPageLabelPrefix>
             </State>
-			<State id='deadbolt_engaged'>
+			<State id='bolt_confirmed'>
 				<ValueType>Boolean</ValueType>
-                <TriggerLabel>Deadbolt is Engaged</TriggerLabel>
-                <TriggerLabelPrefix>Deadbolt is Engaged</TriggerLabelPrefix>
-                <ControlPageLabel>Deadbolt is Engaged</ControlPageLabel>
-                <ControlPageLabelPrefix>Deadbolt is Engaged</ControlPageLabelPrefix>
+                <TriggerLabel>Deadbolt Confirmed</TriggerLabel>
+                <TriggerLabelPrefix>Deadbolt Confirmed</TriggerLabelPrefix>
+                <ControlPageLabel>Deadbolt Confirmed</ControlPageLabel>
+                <ControlPageLabelPrefix>Deadbolt Confirmed</ControlPageLabelPrefix>
+            </State>
+			<State id='pester_active'>
+				<ValueType>Boolean</ValueType>
+                <TriggerLabel>Pester Active</TriggerLabel>
+                <TriggerLabelPrefix>Pester Active</TriggerLabelPrefix>
+                <ControlPageLabel>Pester Active</ControlPageLabel>
+                <ControlPageLabelPrefix>Pester Active</ControlPageLabelPrefix>
             </State>
 		</States>
     </Device>

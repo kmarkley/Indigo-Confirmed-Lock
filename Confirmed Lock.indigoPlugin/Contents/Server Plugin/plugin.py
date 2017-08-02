@@ -15,7 +15,7 @@ import time
 # globals
 
 k_commonTrueStates = ('true', 'on', 'open', 'up', 'yes', 'active', 'locked', '1')
-k_pesterPlug  = indigo.server.getPlugin("com.perceptiveautomation.indigoplugin.timersandpesters")
+pesterPlugin  = indigo.server.getPlugin("com.perceptiveautomation.indigoplugin.timersandpesters")
 
 ################################################################################
 class Plugin(indigo.PluginBase):
@@ -80,7 +80,7 @@ class Plugin(indigo.PluginBase):
                 self.deviceDict[dev.id].cancel()
             del self.deviceDict[dev.id]
 
-    ########################################
+    #-------------------------------------------------------------------------------
     def validateDeviceConfigUi(self, valuesDict, typeId, devId, runtime=False):
         self.logger.debug("validateDeviceConfigUi: " + typeId)
         errorsDict = indigo.Dict()
@@ -110,11 +110,13 @@ class Plugin(indigo.PluginBase):
                 if not valuesDict.get('messageText', ''):
                     errorsDict['messageText'] = "Required"
 
+            valuesDict['address'] = zint(valuesDict.get('lockDevice',0))
+
         if len(errorsDict) > 0:
             return (False, valuesDict, errorsDict)
         return (True, valuesDict)
 
-    ########################################
+    #-------------------------------------------------------------------------------
     def updateDeviceVersion(self, dev):
         theProps = dev.pluginProps
         # update states
@@ -155,9 +157,9 @@ class Plugin(indigo.PluginBase):
             self.logger.debug('"{0}" {1} request ignored'.format(dev.name, str(action.deviceAction)))
 
 
-    ########################################
+    #-------------------------------------------------------------------------------
     # Menu Methods
-    ########################################
+    #-------------------------------------------------------------------------------
     def toggleDebug(self):
         if self.debug:
             self.logger.debug("Debug logging disabled")
@@ -205,11 +207,10 @@ class ConfirmedLock(threading.Thread):
         self.logger     = plugin.logger
         self.sleep      = plugin.sleep
         self.substitute = plugin.substitute
+
         self.device     = instance
-        self.confirmed  = False
 
         self.lockDev    = indigo.devices[int(instance.pluginProps['lockDevice'])]
-
         self.attempts   = zint(instance.pluginProps.get('attemptsCount', 3))
         self.waitTime   = zint(instance.pluginProps.get('attemptsDelay', 10))
 
@@ -221,33 +222,38 @@ class ConfirmedLock(threading.Thread):
         except:
             self.doorDev    = None
 
-        self.deadBool   = instance.pluginProps.get('deadboltSensorBool',False)
-        self.deadState  = instance.pluginProps.get('deadboltSensorState','onOffState')
-        self.deadLogic  = zool(instance.pluginProps.get('deadboltSensorLogic',False))
-        self.deadDelay  = zint(instance.pluginProps.get('deadboltSensorDelay',2))
+        self.boltBool   = instance.pluginProps.get('deadboltSensorBool',False)
+        self.boltState  = instance.pluginProps.get('deadboltSensorState','onOffState')
+        self.boltLogic  = zool(instance.pluginProps.get('deadboltSensorLogic',False))
+        self.boltDelay  = zint(instance.pluginProps.get('deadboltSensorDelay',5))
         try:
-            self.deadDev    = indigo.devices[int(instance.pluginProps['deadboltSensorDevice'])]
+            self.boltDev    = indigo.devices[int(instance.pluginProps['deadboltSensorDevice'])]
         except:
-            self.deadDev    = None
+            self.boltDev    = None
 
         self.actionBool     = zool(instance.pluginProps.get('actionBool',False))
         self.actionGroup    = zint(instance.pluginProps.get('actionGroup',0))
 
-        self.pesterBool     = zool(instance.pluginProps.get('pesterCycles',False))
+        self.pesterBool     = zool(instance.pluginProps.get('pesterCycles',0))
         self.pesterProps    = {
-            'name'                      :   'ConfirmedLock-{}-Pester'.format(self.device.id),
+            'name'                      :   'ConfirmedLock-{}'.format(self.device.id),
             'cycles'                    :   zint(instance.pluginProps.get('pesterCycles',0)),
             'seconds'                   :   zint(instance.pluginProps.get('pesterDelay',60)),
             'actionGroupId'             :   zint(instance.pluginProps.get('actionGroup',0)),
             'executeFinalActionGroup'   :   zool(instance.pluginProps.get('pesterFinal',0)),
             'finalActionGroupId'        :   zint(instance.pluginProps.get('pesterFinal',0)),
             }
-        self.pesterActive   = False
 
         self.messageBool    = instance.pluginProps.get('messageBool',False)
-        self.messageVar     = zint(instance.pluginProps.get('messageVariable',0))
+        self.messageVarId   = zint(instance.pluginProps.get('messageVariable',0))
         self.messageText    = instance.pluginProps.get('messageText','')
 
+        self.onState        = instance.states['onOffState']
+        self.door_confirmed = instance.states['door_confirmed']
+        self.lock_confirmed = instance.states['lock_confirmed']
+        self.bolt_confirmed = instance.states['bolt_confirmed']
+        self.pester_active  = instance.states['pester_active']
+        self.text_state     = instance.states['state']
         self.updateStatus()
 
     #-------------------------------------------------------------------------------
@@ -280,94 +286,103 @@ class ConfirmedLock(threading.Thread):
         self.queue.put(False)
 
     #-------------------------------------------------------------------------------
-    def setLockState(self, lockState):
-        if lockState:
-            for attempt in range(self.attempts):
-                attemptTime = time.time()
-                self.logger.debug('Locking device "{}" (attempt {})'.format(self.device.name, attempt+1))
-                if not self.doorBool or zool(self.doorDev.states[self.doorState]) == self.doorLogic:
-                    if not self.lockDev.onState:
+    def setLockState(self, setState):
+        for attempt in range(self.attempts):
+            self.logger.debug('{} device "{}" (attempt {})'.format(['Unlocking','Locking'][setState], self.device.name, attempt+1))
+            loopTime = time.time()
+
+            if setState:
+                # lock
+                if not self.onState:
+                    if self.door_confirmed:
                         indigo.device.lock(self.lockDev)
-                    if self.deadBool and not zool(self.deadDev.states[self.deadState]) == self.deadLogic:
-                        self.sleep(self.deadDelay)
-                self.updateStatus()
-                if self.confirmed:
-                    self.logger.info('Device "{}" locked'.format(self.device.name))
-                    if self.messageBool:
-                        indigo.variable.updateValue(self.messageVar,'')
-                    if self.pesterActive:
-                        k_pesterPlug.executeAction('cancelPester', props=self.pesterProps)
-                        self.pesterActive = False
-                    break
-                self.sleep(self.waitTime - (time.time() - attemptTime))
+
             else:
-                self.logger.error('Failed to lock "{}" after {} attempts'.format(self.device.name, self.attempts))
+                # unlock
+                if self.onState:
+                    indigo.device.unlock(self.lockDev)
+
+            # wait for mechanical deadbolt
+            self.sleep(self.boltDelay)
+
+            # status change should be caught by deviceUpdated method on main thread
+            if self.onState == setState:
+                # success
+                self.logger.info('Device "{}" {}locked'.format(self.device.name, ['un',''][self.onState]))
                 if self.messageBool:
-                    indigo.variable.updateValue(self.messageVar,self.substitute(self.messageText))
-                if self.actionBool:
-                    indigo.actionGroup.execute(self.actionGroup)
+                    indigo.variable.updateValue(self.messageVarId,'')
+                if self.pester_active:
+                    pesterPlugin.executeAction('cancelPester', props=self.pesterProps)
+                    self.pester_active = False
+                    self.updateStatus()
+                break
+
+            else:
+                # failed attempt
+                self.logger.debug('Device "{}" state is "{}"'.format(self.device.name, self.text_state))
+                # wait for next attempt
+                self.sleep(self.waitTime - (time.time() - loopTime))
+
+        else:
+            # failed all attempts
+            self.logger.error('Failed to {}lock "{}" after {} attempts'.format(['','un'][self.onState], self.device.name, self.attempts))
+            if self.messageBool:
+                indigo.variable.updateValue(self.messageVarId,self.substitute(self.messageText))
+            if self.actionBool:
+                indigo.actionGroup.execute(self.actionGroup)
                 if self.pesterBool:
-                    k_pesterPlug.executeAction('createPester', props=self.pesterProps)
-                    self.pesterActive = True
-        else:
-            self.logger.debug('Unlocking device "{}"'.format(self.device.name))
-            indigo.device.unlock(self.lockDev)
-            if self.deadBool:
-                self.sleep(self.deadDelay)
-            self.updateStatus()
-            if not self.confirmed:
-                self.logger.info('Device "{}" unlocked'.format(self.device.name))
-                if self.messageBool:
-                    indigo.variable.updateValue(self.messageVar,'')
-                if self.pesterActive:
-                    k_pesterPlug.executeAction('cancelPester', props=self.pesterProps)
-                    self.pesterActive = False
-
-    #-------------------------------------------------------------------------------
-    def updateStatus(self):
-        door_closed = deadbolt_engaged = True
-
-        if self.doorBool:
-            door_closed = zool(self.doorDev.states[self.doorState]) == self.doorLogic
-
-        lock_locked = self.lockDev.onState
-
-        if self.deadBool:
-            deadbolt_engaged = zool(self.deadDev.states[self.deadState]) == self.deadLogic
-
-        self.confirmed = door_closed and lock_locked and deadbolt_engaged
-
-        if not door_closed:
-            text_state = 'open'
-        elif not lock_locked:
-            text_state = 'unlocked'
-        elif not deadbolt_engaged:
-            text_state = 'unconfirmed'
-        else:
-            text_state = 'confirmed'
-
-        newStates = [
-            {'key':'onOffState',        'value':self.confirmed},
-            {'key':'door_closed',       'value':door_closed},
-            {'key':'lock_locked',       'value':lock_locked},
-            {'key':'deadbolt_engaged',  'value':deadbolt_engaged},
-            {'key':'state',             'value':text_state},
-            ]
-        self.device.updateStatesOnServer(newStates)
+                    pesterPlugin.executeAction('createPester', props=self.pesterProps)
+                    self.pester_active = True
+                    self.updateStatus()
 
     #-------------------------------------------------------------------------------
     def deviceUpdated(self, oldDev, newDev):
         if newDev.id == self.device.id:
             self.device = newDev
+            return
         elif self.doorBool and newDev.id == self.doorDev.id:
             self.doorDev = newDev
-            self.updateStatus()
         elif newDev.id == self.lockDev.id:
             self.lockDev = newDev
-            self.updateStatus()
-        elif self.deadBool and newDev.id == self.deadDev.id:
-            self.deadDev = newDev
-            self.updateStatus()
+        elif self.boltBool and newDev.id == self.boltDev.id:
+            self.boltDev = newDev
+        self.updateStatus()
+
+    #-------------------------------------------------------------------------------
+    def updateStatus(self):
+
+        if self.doorBool:
+            self.door_confirmed = zool(self.doorDev.states[self.doorState]) == self.doorLogic
+        else:
+            self.door_confirmed = True
+
+        self.lock_confirmed = self.lockDev.onState
+
+        if self.boltBool:
+            self.bolt_confirmed = zool(self.boltDev.states[self.boltState]) == self.boltLogic
+        else:
+            self.bolt_confirmed = True
+
+        self.onState = self.door_confirmed and self.lock_confirmed and self.bolt_confirmed
+
+        if not self.door_confirmed:
+            self.text_state = 'open'
+        elif not self.lock_confirmed:
+            self.text_state = 'unlocked'
+        elif not self.bolt_confirmed:
+            self.text_state = 'unconfirmed'
+        else:
+            self.text_state = 'confirmed'
+
+        devStates = [
+            {'key':'onOffState',        'value':self.onState},
+            {'key':'door_confirmed',    'value':self.doorBool and self.door_confirmed},
+            {'key':'lock_confirmed',    'value':self.lock_confirmed},
+            {'key':'bolt_confirmed',    'value':self.boltBool and self.bolt_confirmed},
+            {'key':'pester_active',     'value':self.pester_active},
+            {'key':'state',             'value':self.text_state},
+            ]
+        self.device.updateStatesOnServer(devStates)
 
 ################################################################################
 class DummyLock(object):
@@ -404,9 +419,10 @@ def zint(value):
 
 #-------------------------------------------------------------------------------
 def zool(value):
-    result = False
     if zint(value):
         result =  True
     elif isinstance(value, basestring):
         result = value.lower() in k_commonTrueStates
+    else:
+        result = False
     return result
