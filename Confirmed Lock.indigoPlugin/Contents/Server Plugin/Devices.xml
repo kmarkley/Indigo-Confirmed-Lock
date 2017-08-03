@@ -105,6 +105,20 @@
 			<Field id='failureSection' type='label' fontSize='big'>
 				<Label>FAILURE</Label>
 			</Field>
+			<Field id='messageBool' type='checkbox'>
+				<Label>Message to variable?</Label>
+				<Description>Save message to variable on failure</Description>
+			</Field>
+			<Field id='messageVariable' type='menu' visibleBindingId='messageBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Variable:</Label>
+				<List class='indigo.variables' />
+			</Field>
+			<Field id='messageText' type='textfield' visibleBindingId='messageBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Message:</Label>
+			</Field>
+			<Field id='messageHelp' type='label' fontColor='darkgray' fontSize='small' alignWithControl='true' visibleBindingId='actionBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+				<Label>Standard text substitutions apply.</Label>
+			</Field>
 			<Field id='actionBool' type='checkbox'>
 				<Label>Failure action?</Label>
 				<Description>Execute an Action Group on failure</Description>
@@ -134,20 +148,6 @@
 			</Field>
 			<Field id='spacer2' type='label'>
 				<Label> </Label>
-			</Field>
-			<Field id='messageBool' type='checkbox'>
-				<Label>Message to variable?</Label>
-				<Description>Save message to variable on failure</Description>
-			</Field>
-			<Field id='messageVariable' type='menu' visibleBindingId='messageBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
-				<Label>Variable:</Label>
-				<List class='indigo.variables' />
-			</Field>
-			<Field id='messageText' type='textfield' visibleBindingId='messageBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
-				<Label>Message:</Label>
-			</Field>
-			<Field id='messageHelp' type='label' fontColor='darkgray' fontSize='small' alignWithControl='true' visibleBindingId='actionBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
-				<Label>Standard text substitutions apply.</Label>
 			</Field>
         </ConfigUI>
 		<States>
