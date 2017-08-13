@@ -18,7 +18,7 @@ from ghpu import GitHubPluginUpdater
 k_commonTrueStates = ('true', 'on', 'open', 'up', 'yes', 'active', 'locked', '1')
 pesterPlugin  = indigo.server.getPlugin("com.perceptiveautomation.indigoplugin.timersandpesters")
 
-k_updateCheckHours = 24
+kPluginUpdateCheckHours = 24
 
 ################################################################################
 class Plugin(indigo.PluginBase):
@@ -176,8 +176,16 @@ class Plugin(indigo.PluginBase):
     # Menu Methods
     #-------------------------------------------------------------------------------
     def checkForUpdates(self):
-        self.updater.checkForUpdate()
-        self.nextCheck = time.time() + k_updateCheckHours*60*60
+        self.pluginNextUpdateCheck = time.time() + (kPluginUpdateCheckHours*60*60)
+        try:
+            self.updater.checkForUpdate()
+        except Exception as e:
+            msg = 'Check for update error.  Next attempt in {} hours.'.format(kPluginUpdateCheckHours)
+            if self.debug:
+                self.logger.exception(msg)
+            else:
+                self.logger.error(msg)
+                self.logger.debug(e)
 
     #-------------------------------------------------------------------------------
     def updatePlugin(self):

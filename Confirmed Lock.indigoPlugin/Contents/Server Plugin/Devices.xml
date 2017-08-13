@@ -116,7 +116,7 @@
 			<Field id='messageText' type='textfield' visibleBindingId='messageBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
 				<Label>Message:</Label>
 			</Field>
-			<Field id='messageHelp' type='label' fontColor='darkgray' fontSize='small' alignWithControl='true' visibleBindingId='actionBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
+			<Field id='messageHelp' type='label' fontColor='darkgray' fontSize='small' alignWithControl='true' visibleBindingId='messageBool' visibleBindingValue='true' alwaysUseInDialogHeightCalc='true'>
 				<Label>Standard text substitutions apply.</Label>
 			</Field>
 			<Field id='actionBool' type='checkbox'>

@@ -67,7 +67,7 @@ Check to execute an Action Group if the plugin fails to confirm the lock state.
 
 ## Dummy Lock devices
 
-Handy for testing, these devices looks like a lock in Indigo, but don't do anything beyond report a locked or unlocked state.
+Handy for testing, these devices look like locks in Indigo, but don't do anything beyond report a locked or unlocked state.
 
 ## Actions
 
