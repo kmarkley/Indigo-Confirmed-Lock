@@ -176,7 +176,7 @@ class Plugin(indigo.PluginBase):
     # Menu Methods
     #-------------------------------------------------------------------------------
     def checkForUpdates(self):
-        self.pluginNextUpdateCheck = time.time() + (kPluginUpdateCheckHours*60*60)
+        self.nextCheck = time.time() + (kPluginUpdateCheckHours*60*60)
         try:
             self.updater.checkForUpdate()
         except Exception as e:
@@ -279,18 +279,70 @@ class ConfirmedLock(threading.Thread):
             'executeFinalActionGroup'   :   zool(instance.pluginProps.get('pesterFinal',0)),
             'finalActionGroupId'        :   zint(instance.pluginProps.get('pesterFinal',0)),
             }
+        self.cancelProps    = {
+            'name'                      :   self.pesterProps['name'],
+            }
 
         self.messageBool    = instance.pluginProps.get('messageBool',False)
         self.messageVarId   = zint(instance.pluginProps.get('messageVariable',0))
         self.messageText    = instance.pluginProps.get('messageText','')
 
-        self.onState        = instance.states['onOffState']
-        self.door_confirmed = instance.states['door_confirmed']
-        self.lock_confirmed = instance.states['lock_confirmed']
-        self.bolt_confirmed = instance.states['bolt_confirmed']
-        self.pester_active  = instance.states['pester_active']
-        self.text_state     = instance.states['state']
+        self._action_success = instance.states.get('action_success',True)
+
         self.updateStatus()
+
+    #-------------------------------------------------------------------------------
+    # properties
+    #-------------------------------------------------------------------------------
+    @property
+    def onState(self):
+        return self.door_confirmed and self.lock_confirmed and self.bolt_confirmed
+
+    @property
+    def door_confirmed(self):
+        if self.doorBool:
+            return zool(self.doorDev.states[self.doorState]) == self.doorLogic
+        else:
+            return True
+
+    @property
+    def lock_confirmed(self):
+        return self.lockDev.onState
+
+    @property
+    def bolt_confirmed(self):
+        if self.boltBool:
+            return zool(self.boltDev.states[self.boltState]) == self.boltLogic
+        else:
+            return True
+
+    @property
+    def text_state(self):
+        if not self.door_confirmed:
+            return 'open'
+        elif not self.lock_confirmed:
+            return 'unlocked'
+        elif not self.bolt_confirmed:
+            return 'unconfirmed'
+        else:
+            return 'confirmed'
+
+    def action_success_get(self):
+        return self._action_success
+    def action_success_set(self, value):
+        success = zool(value)
+        if self.messageBool:
+            indigo.variable.updateValue(self.messageVarId,[self.substitute(self.messageText),''][success])
+        if self.actionBool and not success:
+            indigo.actionGroup.execute(self.actionGroup)
+        if self.pesterBool:
+            if not success:
+                pesterPlugin.executeAction('createPester', props=self.pesterProps)
+            elif not self.action_success:
+                pesterPlugin.executeAction('cancelPester', props=self.cancelProps)
+        self._action_success = success
+        self.updateStatus()
+    action_success = property(action_success_get, action_success_set)
 
     #-------------------------------------------------------------------------------
     def run(self):
@@ -304,7 +356,11 @@ class ConfirmedLock(threading.Thread):
             except Queue.Empty:
                 pass
             except Exception as e:
-                self.logger.error('{}: thread error \n{}'.format(self.device.name, e))
+                msg = '{}: thread error \n{}'.format(self.device.name, e)
+                if self.plugin.debug:
+                    self.logger.exception(msg)
+                else:
+                    self.logger.error(msg)
         else:
             self.logger.debug('{}: thread cancelled'.format(self.device.name))
 
@@ -335,7 +391,7 @@ class ConfirmedLock(threading.Thread):
 
             else:
                 # unlock
-                if self.onState:
+                if self.lock_confirmed:
                     indigo.device.unlock(self.lockDev)
 
             # wait for mechanical deadbolt
@@ -344,78 +400,42 @@ class ConfirmedLock(threading.Thread):
             # status change should be caught by deviceUpdated method on main thread
             if self.onState == setState:
                 # success
-                self.logger.info('Device "{}" {}locked'.format(self.device.name, ['un',''][self.onState]))
-                if self.messageBool:
-                    indigo.variable.updateValue(self.messageVarId,'')
-                if self.pester_active:
-                    pesterPlugin.executeAction('cancelPester', props=self.pesterProps)
-                    self.pester_active = False
-                    self.updateStatus()
+                self.logger.info('"{}" {}locked'.format(self.device.name, ['un',''][self.onState]))
+                self.action_success = True
                 break
 
             else:
                 # failed attempt
-                self.logger.debug('Device "{}" state is "{}"'.format(self.device.name, self.text_state))
+                self.logger.debug('"{}" state is "{}"'.format(self.device.name, self.text_state))
                 # wait for next attempt
                 self.sleep(self.waitTime - (time.time() - loopTime))
 
         else:
             # failed all attempts
             self.logger.error('Failed to {}lock "{}" after {} attempts'.format(['','un'][self.onState], self.device.name, self.attempts))
-            if self.messageBool:
-                indigo.variable.updateValue(self.messageVarId,self.substitute(self.messageText))
-            if self.actionBool:
-                indigo.actionGroup.execute(self.actionGroup)
-                if self.pesterBool:
-                    pesterPlugin.executeAction('createPester', props=self.pesterProps)
-                    self.pester_active = True
-                    self.updateStatus()
+            self.action_success = False
 
     #-------------------------------------------------------------------------------
     def deviceUpdated(self, oldDev, newDev):
         if newDev.id == self.device.id:
             self.device = newDev
             return
-        elif self.doorBool and newDev.id == self.doorDev.id:
+        elif newDev.id == self.doorDev.id:
             self.doorDev = newDev
         elif newDev.id == self.lockDev.id:
             self.lockDev = newDev
-        elif self.boltBool and newDev.id == self.boltDev.id:
+        elif newDev.id == self.boltDev.id:
             self.boltDev = newDev
         self.updateStatus()
 
     #-------------------------------------------------------------------------------
     def updateStatus(self):
-
-        if self.doorBool:
-            self.door_confirmed = zool(self.doorDev.states[self.doorState]) == self.doorLogic
-        else:
-            self.door_confirmed = True
-
-        self.lock_confirmed = self.lockDev.onState
-
-        if self.boltBool:
-            self.bolt_confirmed = zool(self.boltDev.states[self.boltState]) == self.boltLogic
-        else:
-            self.bolt_confirmed = True
-
-        self.onState = self.door_confirmed and self.lock_confirmed and self.bolt_confirmed
-
-        if not self.door_confirmed:
-            self.text_state = 'open'
-        elif not self.lock_confirmed:
-            self.text_state = 'unlocked'
-        elif not self.bolt_confirmed:
-            self.text_state = 'unconfirmed'
-        else:
-            self.text_state = 'confirmed'
-
         devStates = [
             {'key':'onOffState',        'value':self.onState},
             {'key':'door_confirmed',    'value':self.doorBool and self.door_confirmed},
             {'key':'lock_confirmed',    'value':self.lock_confirmed},
             {'key':'bolt_confirmed',    'value':self.boltBool and self.bolt_confirmed},
-            {'key':'pester_active',     'value':self.pester_active},
+            {'key':'action_success',    'value':self.action_success},
             {'key':'state',             'value':self.text_state},
             ]
         self.device.updateStatesOnServer(devStates)
@@ -456,9 +476,8 @@ def zint(value):
 #-------------------------------------------------------------------------------
 def zool(value):
     if zint(value):
-        result =  True
+        return  True
     elif isinstance(value, basestring):
-        result = value.lower() in k_commonTrueStates
+        return value.lower() in k_commonTrueStates
     else:
-        result = False
-    return result
+        return False

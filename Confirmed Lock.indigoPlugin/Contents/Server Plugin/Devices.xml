@@ -186,12 +186,12 @@
                 <ControlPageLabel>Deadbolt Confirmed</ControlPageLabel>
                 <ControlPageLabelPrefix>Deadbolt Confirmed</ControlPageLabelPrefix>
             </State>
-			<State id='pester_active'>
+			<State id='action_success'>
 				<ValueType>Boolean</ValueType>
-                <TriggerLabel>Pester Active</TriggerLabel>
-                <TriggerLabelPrefix>Pester Active</TriggerLabelPrefix>
-                <ControlPageLabel>Pester Active</ControlPageLabel>
-                <ControlPageLabelPrefix>Pester Active</ControlPageLabelPrefix>
+                <TriggerLabel>Action Success</TriggerLabel>
+                <TriggerLabelPrefix>Action Success</TriggerLabelPrefix>
+                <ControlPageLabel>Action Success</ControlPageLabel>
+                <ControlPageLabelPrefix>Action Success</ControlPageLabelPrefix>
             </State>
 		</States>
     </Device>
