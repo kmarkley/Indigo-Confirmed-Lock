@@ -270,9 +270,10 @@ class ConfirmedLock(threading.Thread):
         self.actionBool     = zool(instance.pluginProps.get('actionBool',False))
         self.actionGroup    = zint(instance.pluginProps.get('actionGroup',0))
 
+        self.pesterName     = 'ConfirmedLock-{}'.format(self.device.id)
         self.pesterBool     = zool(instance.pluginProps.get('pesterCycles',0))
         self.pesterProps    = {
-            'name'                      :   'ConfirmedLock-{}'.format(self.device.id),
+            'name'                      :   self.pesterName,
             'cycles'                    :   zint(instance.pluginProps.get('pesterCycles',0)),
             'seconds'                   :   zint(instance.pluginProps.get('pesterDelay',60)),
             'actionGroupId'             :   zint(instance.pluginProps.get('actionGroup',0)),
@@ -280,7 +281,7 @@ class ConfirmedLock(threading.Thread):
             'finalActionGroupId'        :   zint(instance.pluginProps.get('pesterFinal',0)),
             }
         self.cancelProps    = {
-            'name'                      :   self.pesterProps['name'],
+            'name'                      :   self.pesterName,
             }
 
         self.messageBool    = instance.pluginProps.get('messageBool',False)
@@ -426,6 +427,8 @@ class ConfirmedLock(threading.Thread):
             self.lockDev = newDev
         elif newDev.id == self.boltDev.id:
             self.boltDev = newDev
+        else:
+            return
         self.updateStatus()
 
     #-------------------------------------------------------------------------------
