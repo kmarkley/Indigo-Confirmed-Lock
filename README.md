@@ -58,7 +58,7 @@ Check to execute an Action Group if the plugin fails to confirm the lock state.
 * **action_success** (bool): true if the last lock/unlock action was successful.
 * **bolt_confirmed** (bool): true if the deadbolt sensor reports deadbolt fully engaged.
 * **door_confirmed** (bool): true if the door sensor reports the door is closed.
-* **locked_confirmed** (bool): true if the lock device reports being locked.
+* **lock_confirmed** (bool): true if the lock device reports being locked.
 * **state** (enum): one of
     * **open**: the door is open
     * **unlocked**: the lock is unlocked

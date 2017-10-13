@@ -418,16 +418,15 @@ class ConfirmedLock(threading.Thread):
 
     #-------------------------------------------------------------------------------
     def deviceUpdated(self, oldDev, newDev):
-        if newDev.id == self.device.id:
-            self.device = newDev
-            return
-        elif newDev.id == self.doorDev.id:
+        if newDev.id == self.doorDev.id:
             self.doorDev = newDev
         elif newDev.id == self.lockDev.id:
             self.lockDev = newDev
         elif newDev.id == self.boltDev.id:
             self.boltDev = newDev
         else:
+            if newDev.id == self.device.id:
+                self.device = newDev
             return
         self.updateStatus()
 
