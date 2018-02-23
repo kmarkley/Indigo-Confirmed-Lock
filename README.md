@@ -1,9 +1,9 @@
 # Confirmed Lock
-This plugin combines lock devices with (optional) door and deadbolt sensors to provide additional confirmation that a lock is actually, literally, really truly locked.
+This plugin combines lock devices with (optional) door and deadbolt sensors to provide additional confirmation that a lock is actually, literally, really, truly locked.
 
 Lock and unlock commands sent to the plugin device will cause the plugin to attempt multiple times to lock or unlock the physical lock device, until confirmation is obtained.
 
-If the plugin fails to confirm the state of the physical lock, the plugin will optionally execute Action Group may be executed, as well as optionally create a Pester to repeat the Action Group.
+If the plugin fails to confirm the state of the physical lock, the plugin will optionally execute an Action Group, as well as optionally create a Pester to repeat the Action Group.
 
 ## Confirmed Lock devices
 
@@ -12,7 +12,7 @@ If the plugin fails to confirm the state of the physical lock, the plugin will o
 * **Select Lock Device**  
 Select the lock you wish to confirm.
 * **Number of attempts**  
-Number of times to attempt to lock/unlock the physical lock device
+Self explanatory.
 * **Delay between attempts**  
 Self explanatory.
 * **Door sensor?**  
@@ -28,13 +28,13 @@ Check if there exists an independent sensor for the deadbolt.
     * **Deadbolt sensor device**  
     Select the deadbolt sensor device.
     * **State**  
-    Select the device state for the daedbolt sensor
+    Select the device state for the deadbolt sensor
     * **Value when engaged**  
     What is the state value when the deadbolt is fully engaged?
     * **Deadbolt sensor delay**  
     How long to wait for the lock mechanism before checking the deadbolt sensor.
 * **Message to variable**  
-Check to write set a variable on failure.
+Check to set a variable value on failure.
     * **Variable**  
     Select the variable.
     * **Message**  
