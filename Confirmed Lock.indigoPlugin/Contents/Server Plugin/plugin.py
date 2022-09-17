@@ -5,7 +5,7 @@
 
 import indigo
 import threading
-import Queue
+import queue
 import time
 
 # Note the "indigo" module is automatically imported and made available inside
@@ -201,7 +201,7 @@ class ConfirmedLock(threading.Thread):
         super(ConfirmedLock, self).__init__()
         self.daemon     = True
         self.cancelled  = False
-        self.queue      = Queue.Queue()
+        self.queue      = queue.Queue()
 
         self.plugin     = plugin
         self.logger     = plugin.logger
@@ -318,7 +318,7 @@ class ConfirmedLock(threading.Thread):
                 self.taskTime = time.time()
                 self.setLockState(task)
                 self.queue.task_done()
-            except Queue.Empty:
+            except queue.Empty:
                 pass
             except Exception as e:
                 msg = '{}: thread error \n{}'.format(self.device.name, e)
@@ -443,7 +443,7 @@ def zint(value):
 def zool(value):
     if zint(value):
         return  True
-    elif isinstance(value, basestring):
+    elif isinstance(value, str):
         return value.lower() in k_commonTrueStates
     else:
         return False
