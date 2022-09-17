@@ -151,10 +151,10 @@ class Plugin(indigo.PluginBase):
         elif action.deviceAction == indigo.kDeviceAction.Toggle:
             [lockDev.lock(),lockDev.unlock()][dev.onState]
         elif action.deviceAction == indigo.kDeviceAction.RequestStatus:
-            self.logger.info('"{0}" status update'.format(dev.name))
+            self.logger.info(f'"{dev.name}" status update')
             lockDev.updateStatus()
         else:
-            self.logger.debug('"{0}" {1} request ignored'.format(dev.name, str(action.deviceAction)))
+            self.logger.debug(f'"{dev.name}" {str(action.deviceAction)} request ignored')
 
 
     #-------------------------------------------------------------------------------
@@ -234,7 +234,7 @@ class ConfirmedLock(threading.Thread):
         self.actionBool     = zool(instance.pluginProps.get('actionBool',False))
         self.actionGroup    = zint(instance.pluginProps.get('actionGroup',0))
 
-        self.pesterName     = 'ConfirmedLock-{}'.format(self.device.id)
+        self.pesterName     = f'ConfirmedLock-{self.device.id}'
         self.pesterBool     = zool(instance.pluginProps.get('pesterCycles',0))
         self.pesterProps    = {
             'name'                      :   self.pesterName,
@@ -311,7 +311,7 @@ class ConfirmedLock(threading.Thread):
 
     #-------------------------------------------------------------------------------
     def run(self):
-        self.logger.debug('{}: thread started'.format(self.device.name))
+        self.logger.debug(f'{self.device.name}: thread started')
         while not self.cancelled:
             try:
                 task = self.queue.get(True,2)
@@ -321,13 +321,13 @@ class ConfirmedLock(threading.Thread):
             except queue.Empty:
                 pass
             except Exception as e:
-                msg = '{}: thread error \n{}'.format(self.device.name, e)
+                msg = f'{self.device.name}: thread error \n{e}'
                 if self.plugin.debug:
                     self.logger.exception(msg)
                 else:
                     self.logger.error(msg)
         else:
-            self.logger.debug('{}: thread cancelled'.format(self.device.name))
+            self.logger.debug(f'{self.device.name}: thread cancelled')
 
     #-------------------------------------------------------------------------------
     def cancel(self):
@@ -345,7 +345,7 @@ class ConfirmedLock(threading.Thread):
     #-------------------------------------------------------------------------------
     def setLockState(self, setState):
         for attempt in range(self.attempts):
-            self.logger.debug('{} device "{}" (attempt {})'.format(['Unlocking','Locking'][setState], self.device.name, attempt+1))
+            self.logger.debug(f'{["Unlocking","Locking"][setState]} device "{self.device.name}" (attempt {attempt+1})')
             loopTime = time.time()
 
             if setState:
@@ -365,19 +365,19 @@ class ConfirmedLock(threading.Thread):
             # status change should be caught by deviceUpdated method on main thread
             if self.onState == setState:
                 # success
-                self.logger.info('"{}" {}locked'.format(self.device.name, ['un',''][self.onState]))
+                self.logger.info(f'"{self.device.name}" {["un",""][self.onState]}locked')
                 self.action_success = True
                 break
 
             else:
                 # failed attempt
-                self.logger.debug('"{}" state is "{}"'.format(self.device.name, self.text_state))
+                self.logger.debug(f'"{self.device.name}" state is "{self.text_state}"')
                 # wait for next attempt
                 self.sleep(self.waitTime - (time.time() - loopTime))
 
         else:
             # failed all attempts
-            self.logger.error('Failed to {}lock "{}" after {} attempts'.format(['','un'][self.onState], self.device.name, self.attempts))
+            self.logger.error(f'Failed to {["","un"][self.onState]}lock "{self.device.name}" after {self.attempts} attempts')
             self.action_success = False
 
     #-------------------------------------------------------------------------------
